@@ -22,8 +22,7 @@ from langchain.llms import HuggingFaceHub
 st.set_page_config(page_title='Chat with Case papers', page_icon=":books:")
 
 # Set your OpenAI API key
-os.environ["openai_api_key"] = "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"
-
+os.environ["openai_api_key"] = os.getenv("API_KEY")
 def home_page():
     st.title("LawYantra")
     st.write("Welcome to the Home Page.")
@@ -106,11 +105,12 @@ def home_page():
 
 # Define a function for Page 1
 def page_1():
+     
     st.title("Lawyer Dashboard")
     st.write("This is Lawyer Dashboad.")
         
     # Read the CSV file
-    Df = pd.read_csv('vis_lawyer_data.csv')
+    Df = pd.read_csv('lawyer_data.csv')
 
     # Create a column selector
     lawyer_name = st.selectbox('Select a lawyer', Df['name'])
@@ -125,24 +125,26 @@ def page_1():
 
     # Calculate and display statistics
     st.title("Lawyer Data")
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
 
     with col1:
-        st.metric("Experience", selected_lawyer_data['experience'].iloc[0])
+        st.metric("Jurisdiction", selected_lawyer_data['jurisdiction'].iloc[0])
 
     with col2:
         st.metric("City of Practice", selected_lawyer_data['cityofpractice'].iloc[0])
 
+    col3, col4 = st.columns(2)
+    
     with col3:
         st.metric("Charges per case", selected_lawyer_data['charges'].iloc[0])
-
-    col4, col5, col6 = st.columns(3)
-
+        
     with col4:
-        st.metric("Ratings", selected_lawyer_data['feedback'].iloc[0])
-
+        st.metric("Days for Disposal", selected_lawyer_data['daysofdisposal'].iloc[0])
+        
+    col5, col6 = st.columns(2)
+    
     with col5:
-        st.metric("Work sectors", selected_lawyer_data['sector'].iloc[0])
+       st.metric("Client Demographics", selected_lawyer_data['clientdemographics'].iloc[0])
 
     with col6:
         st.metric("Pro Bono Services Provided", selected_lawyer_data['probonoserviceprovided'].iloc[0])
@@ -185,6 +187,23 @@ def page_1():
                 }))
         fig2.update_layout(width=400, height=300)  # Adjust width and height here
         st.plotly_chart(fig2)
+
+
+        # Assuming you have a DataFrame called 'df' with your lawyer data
+        col1, col2 = st.columns(2)
+
+        # Plot 1: Feedback Scores Distribution (Interactive Histogram)
+        fig1 = px.histogram(Df, x='feedback', nbins=10, title='Feedback Scores Distribution')
+        fig1.update_layout(xaxis_title='Feedback Score', yaxis_title='Frequency')
+
+        # Plot 2: Experience vs. Charges (Interactive Scatter Plot)
+        fig2 = px.scatter(Df, x='experience', y='charges', color='probonoserviceprovided', title='Experience vs. Charges')
+        fig2.update_layout(xaxis_title='Experience (Years)', yaxis_title='Charges per Case (USD)')
+
+        # Display the plots in the left column
+        with col1:
+            st.plotly_chart(fig1)
+            st.plotly_chart(fig2)
 
 # Define a function for Page 2
 def page_2():
@@ -275,7 +294,7 @@ def page_2():
                 st.session_state.conversation = get_conversation_chain(vectorstore)
 
 # Create navigation buttons
-page = st.sidebar.radio("Navigation", ["Home", "Page 1", "Page 2"])
+page = st.sidebar.radio("Navigation", ["Home", "Lawyer Dashboard", "Study Case papers"])
 
 # Call the appropriate function based on the selected page
 if page == "Home":
